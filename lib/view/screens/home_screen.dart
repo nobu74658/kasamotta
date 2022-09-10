@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -20,7 +21,11 @@ class HomeScreen extends StatelessWidget {
               ElevatedButton(
                 onPressed: () => _getLocation(),
                 child: Text("Location"),
-              )
+              ),
+              ElevatedButton(
+                onPressed: () => _fireFunction(),
+                child: Text("function"),
+              ),
             ],
           ),
         ),
@@ -28,14 +33,18 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  _buttonPushed() async{
+  _buttonPushed() async {
     final response = await http.get(
-      Uri.parse("https://api.open-meteo.com/v1/forecast?latitude=34.49&longitude=135.40&current_weather=true"),);
+      Uri.parse(
+          "https://api.open-meteo.com/v1/forecast?latitude=34.49&longitude=135.40&current_weather=true"),
+    );
     print(response.body);
   }
 
-  _getLocation() async{
-    String _location = "no data";LocationPermission permission = await Geolocator.checkPermission();
+  _getLocation() async {
+    //TODO：android manifest location permissions
+    String _location = "no data";
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
@@ -46,5 +55,16 @@ class HomeScreen extends StatelessWidget {
     Position position = await Geolocator.getCurrentPosition();
     print("緯度: " + position.latitude.toString());
     print("経度: " + position.longitude.toString());
+  }
+
+  _fireFunction() async {
+    try {
+      final result =
+          await FirebaseFunctions.instance.httpsCallable("addMessage").call();
+    } on FirebaseFunctionsException catch (error) {
+      print(error.code);
+      print(error.details);
+      print(error.message);
+    }
   }
 }
