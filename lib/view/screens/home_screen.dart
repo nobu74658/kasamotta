@@ -2,6 +2,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -26,6 +27,7 @@ class HomeScreen extends StatelessWidget {
                 onPressed: () => _fireFunction(),
                 child: Text("function"),
               ),
+              ElevatedButton(onPressed: () => _cloudFunctionMethod(), child: Text('future'))
             ],
           ),
         ),
@@ -34,11 +36,18 @@ class HomeScreen extends StatelessWidget {
   }
 
   _buttonPushed() async {
-    final response = await http.get(
+    print("_buttonPushed スタート");
+    final response = await http.post(
+    //   Uri.parse(
+    //       "https://api.open-meteo.com/v1/forecast?latitude=34.49&longitude=135.40&current_weather=true"),
+    // );
       Uri.parse(
-          "https://api.open-meteo.com/v1/forecast?latitude=34.49&longitude=135.40&current_weather=true"),
+          "https://us-central1-kasamotta.cloudfunctions.net/date"),
     );
     print(response.body);
+    // http.Request(
+    // );
+    print("_buttonPushed 終了");
   }
 
   _getLocation() async {
@@ -66,5 +75,15 @@ class HomeScreen extends StatelessWidget {
       print(error.details);
       print(error.message);
     }
+  }
+
+  Future<void> _cloudFunctionMethod() async {
+    print('cloudFunctionMethod スタート');
+    HttpsCallable callable =
+    FirebaseFunctions.instanceFor(region: "us-central1")
+        .httpsCallable("date");
+    var result = await callable.call();
+    print(result.data);
+    print('cloudFunctionMethod 終了');
   }
 }

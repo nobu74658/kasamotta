@@ -1,4 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:kasamotta/di/providers.dart';
 import 'package:kasamotta/firebase_options.dart';
@@ -10,6 +11,19 @@ import 'package:provider/provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  String token = await messaging.getToken() ?? "no token";
+  print("fcmToken:"+token);
+  NotificationSettings settings = await messaging.requestPermission(
+    alert: true,
+    announcement: false,
+    badge: true,
+    carPlay: false,
+    criticalAlert: false,
+    provisional: false,
+    sound: true,
+  );
+  print('User granted permission: ${settings.authorizationStatus}');
   runApp(
     MultiProvider(
       providers: globalProviders,
